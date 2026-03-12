@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+      <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoyageGenie AI | V54 Stable</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+   
+ <style>
+       @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+
+:root {
+    --bg-dark: #0f172a;
+    --accent: #3b82f6;
+    --glass: rgba(30, 41, 59, 0.7);
+    --border: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: radial-gradient(circle at top right, #1e1b4b, #020617),
+                radial-gradient(circle at bottom left, #0f172a, #020617);
+    background-attachment: fixed;
+    color: white;
+}
+
+/* Advanced Glassmorphism */
+.auth-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-input {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    transition: all 0.3s ease;
+}
+
+.auth-input:focus {
+    border-color: #3b82f6 !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+.btn-glass {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-glass:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px -5px rgba(59, 130, 246, 0.6);
+}
+
+
+/* Centering Engine */
+.overlay-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;             /* Magic for centering */
+    align-items: center;       /* Vertical center */
+    justify-content: center;    /* Horizontal center */
+    z-index: 100;
+    transition: opacity 0.5s ease;
+}
+.hidden {
+    display: none !important;
+}
+#setup-page:not(.hidden) {
+    display: flex !important;
+    opacity: 1 !important;
+}
+
+/* Glassmorphism for the Inner Cards */
+.auth-card {
+    width: 90%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3rem;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+/* Floating Animation for the Genie */
+@keyframes glow {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5)); }
+    50% { filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.8)); }
+}
+
+.genie-float {
+    animation: floating 3s ease-in-out infinite, glow 3s ease-in-out infinite;
+}
+
+/* Custom Date Picker Styling for Dark Theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Makes the calendar icon white */
+    opacity: 0.6;
+}
+
+/* Setup Specific Card */
+.setup-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 3rem;
+    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Field Group Labels */
+.field-label {
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #64748b;
+    margin-left: 1rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Pulsing Generation Button */
+.btn-generate {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-generate::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.btn-generate:hover::after {
+    opacity: 1;
+}
+
+
+
+  .active-tab { 
+        background-color: #2563eb !important; 
+        color: white !important; 
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); 
+        transform: translateY(-2px); 
+    } 
+    ./* V54 Grid Alignment */
+.tab-btn {
+    display: flex;
+    flex-direction: column; /* Icon on top, text on bottom */
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 60px; /* Ensures all buttons are the same height */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-btn i {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+    margin-right: 0 !important; /* Removes the side margin since icon is now centered above */
+}
+
+/* Hover/Active states */
+.tab-btn:active {
+    transform: scale(0.95);
+}
+    .no-scrollbar::-webkit-scrollbar { display: none; } 
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; } 
+
+
+
+/* --- Updated Chatbot Styles --- */
+
+#chat-toggle {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 60px !important;
+    height: 60px !important;
+    background: #2563eb !important; 
+    color: white !important;
+    border: none !important;
+    border-radius: 50% !important;
+    font-size: 24px !important;
+    cursor: pointer !important;
+    z-index: 10000 !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3) !important;
+    transition: transform 0.3s ease !important;
+}
+
+#chat-toggle:hover { transform: scale(1.1); }
+
+#chat-container {
+    position: fixed !important;
+    bottom: 95px !important;
+    right: 20px !important;
+    width: 330px !important;
+    height: 480px !important;
+    background: white !important;
+    border-radius: 24px !important;
+    display: none; 
+    flex-direction: column !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2) !important;
+    z-index: 10000 !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+#chat-header { 
+    background: #1e293b; 
+    color: white; 
+    padding: 16px; 
+    font-size: 14px;
+    font-weight: 800; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#chat-box { 
+    flex: 1; 
+    padding: 15px; 
+    overflow-y: auto; 
+    background: #f8fafc; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+}
+
+/* THE FIX: Force input text to be visible (Dark Slate) */
+#user-input { 
+    flex: 1; 
+    border: none; 
+    padding: 12px; 
+    outline: none; 
+    background: white !important;
+    color: #0f172a !important; /* Dark Slate Blue */
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#user-input::placeholder {
+    color: #94a3b8 !important;
+}
+
+#chat-input-area { 
+    display: flex; 
+    align-items: center;
+    background: white;
+    border-top: 1px solid #f1f5f9; 
+    padding: 8px 12px; 
+}
+
+#chat-input-area button { 
+    background: #2563eb; 
+    color: white; 
+    border: none; 
+    width: 35px;
+    height: 35px;
+    cursor: pointer; 
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+#chat-input-area button:hover { background: #1d4ed8; }
+	
+/* Force Dashboard Visibility */
+#dashboard:not(.hidden) {
+    display: block !important;
+}
+
+/* Map must have a fixed height for Leaflet */
+#map {
+    height: 250px !important;
+    width: 100%;
+    background: #f1f5f9; /* Slate-100 placeholder */
+    z-index: 10;
+}
+/* Two-Row Tab Grid */
+.tab-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns per row */
+    gap: 0.75rem;
+    padding-bottom: 1.5rem;
+}
+
+.tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 0.8; /* Keeps buttons slightly rectangular/square */
+    background: rgba(30, 41, 59, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #94a3b8 !important;
+    border-radius: 1.5rem !important;
+    transition: all 0.3s ease;
+}
+
+.tab-btn i {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.tab-btn span {
+    font-size: 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* Ensure Setup Page is truly gone when hidden */
+#setup-page.hidden {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Horizontal Scroll for Tabs */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.tab-btn.active i { color: white !important; }
+
+	</style>
+
+
+	</head>
+	<body>
+
+	<div id="login-page" class="overlay-layer fixed inset-0 flex items-center justify-center bg-[#070b14] overflow-hidden">
+    <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-900/20 blur-[120px] rounded-full"></div>
+    <div class="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-indigo-900/20 blur-[120px] rounded-full"></div>
+
+    <div class="auth-card relative z-10">
+        <div class="text-center mb-10">
+            <div class="relative inline-block">
+                <i class="fas fa-wand-magic-sparkles text-blue-500 text-6xl mb-4 genie-float"></i>
+            </div>
+            <h2 id="auth-title" class="text-4xl font-black italic text-white uppercase tracking-tighter">
+                Voyage<span class="text-blue-500">Genie</span>
+            </h2>
+            <p class="text-blue-400/60 text-[9px] font-black uppercase tracking-[0.3em] mt-2">AI Travel Portal • v2026</p>
+        </div>
+
+        <div class="space-y-4">
+            <div id="auth-fields">
+                <div id="register-fields" class="hidden animate-fade-in">
+                    <input type="text" id="reg-name" placeholder="Full Name" 
+                           class="auth-input w-full p-4 rounded-2xl mb-4 outline-none font-medium placeholder:text-slate-500">
+                </div>
+
+                <div class="relative mb-4">
+                    <input type="email" id="log-email" placeholder="Email Address" 
+                           class="auth-input w-full p-4 rounded-2xl outline-none font-medium placeholder:text-slate-500">
+                </div>
+                
+                <div class="relative mb-6">
+                    <input type="password" id="log-pass" placeholder="Password" 
+                           class="auth-input w-full p-4 rounded-2xl outline-none font-medium placeholder:text-slate-500">
+                </div>
+                
+                <button onclick="handleAuthSubmit()" id="auth-main-btn" 
+                        class="btn-glass w-full text-white p-5 rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95">
+                    Enter Portal
+                </button>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-white/5 text-center">
+                <p id="auth-footer-text" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                    New to the Portal? 
+                    <a href="javascript:void(0)" onclick="toggleToRegister()" id="auth-toggle-link" 
+                       class="text-blue-400 font-black ml-1 hover:text-blue-300 transition-colors">Create Account</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+   <div id="setup-page" class="overlay-layer fixed inset-0 flex items-center justify-center bg-[#070b14] p-4 hidden">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-600/5 blur-[150px] pointer-events-none"></div>
+
+    <div class="setup-card w-full max-w-md p-8 relative z-10 border-t border-white/10">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-black italic text-white uppercase tracking-tighter">
+                Set Your <span class="text-blue-500">Voyage</span>
+            </h2>
+            <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mt-1">Configure Mission Parameters</p>
+        </div>
+
+        <div class="space-y-5">
+            <div>
+                <span class="field-label">Route Details</span>
+                <div class="space-y-2">
+                    <div class="relative">
+                        <i class="fas fa-location-arrow absolute left-4 top-4 text-blue-500/50 text-xs"></i>
+                        <input type="text" id="in-src" placeholder="Starting City" 
+                               class="auth-input w-full p-4 pl-10 rounded-2xl outline-none font-bold text-sm">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-map-marker-alt absolute left-4 top-4 text-red-500/50 text-xs"></i>
+                        <input type="text" id="in-dst" placeholder="Destination City" 
+                               class="auth-input w-full p-4 pl-10 rounded-2xl outline-none font-bold text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <span class="field-label">Departure</span>
+                    <input type="date" id="in-date" 
+                           class="auth-input w-full p-4 rounded-2xl outline-none font-bold text-xs uppercase">
+                </div>
+                <div>
+                    <span class="field-label">Duration</span>
+                    <input type="number" id="in-days" placeholder="Days" 
+                           class="auth-input w-full p-4 rounded-2xl outline-none font-bold text-sm">
+                </div>
+            </div>
+
+            <div>
+                <span class="field-label">Travel Mode</span>
+                <div class="relative">
+                    <select id="in-mode" class="auth-input w-full p-4 rounded-2xl font-bold outline-none appearance-none cursor-pointer text-sm">
+                        <option value="aerial">✈️ Aerial Mode</option>
+                        <option value="rail">🚆 Rail Mode</option>
+                        <option value="road">🚗 Road Mode</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-5 text-slate-500 pointer-events-none text-xs"></i>
+                </div>
+            </div>
+
+            <button onclick="startVoyage()" 
+                    class="btn-generate w-full text-white p-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl active:scale-95 transition-all mt-4">
+                Launch Trip Planner
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="dashboard" class="hidden min-h-screen overflow-y-auto pb-24">
+    <header class="dash-header p-5 flex justify-between items-center sticky top-0 z-[60]">
+        <b class="italic uppercase text-lg text-white tracking-tighter">
+            Voyage<span class="text-blue-500">Genie</span>
+        </b>
+        <span id="top-pill" class="text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full font-black uppercase tracking-widest">
+            Ready for Departure
+        </span>
+    </header>
+
+    <main class="p-4 max-w-lg mx-auto">
+    <div id="map" class="rounded-[2.5rem] overflow-hidden mb-6 h-48 bg-slate-900 relative border border-white/5">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#070b14] to-transparent opacity-80"></div>
+        <div class="absolute bottom-5 left-6">
+            <p class="text-[7px] font-black text-blue-400 uppercase tracking-widest mb-1">Live Vector</p>
+            <h2 id="map-dest-label" class="text-xl font-black text-white uppercase tracking-tighter">Your Journey</h2>
+        </div>
+    </div>
+
+    <div class="tab-grid">
+        <button onclick="renderTab('itinerary')" id="t-itinerary" class="tab-btn">
+            <i class="fas fa-map-marked-alt text-blue-400"></i>
+            <span>Itinerary</span>
+        </button>
+        
+        <button onclick="renderTab('essentials')" id="t-essentials" class="tab-btn">
+            <i class="fas fa-suitcase text-purple-400"></i>
+            <span>Pack</span>
+        </button>
+
+        <button onclick="renderTab('flights')" id="t-flights" class="tab-btn">
+            <i class="fas fa-plane text-sky-400"></i>
+            <span>Flights</span>
+        </button>
+
+        <button onclick="renderTab('stay')" id="t-stay" class="tab-btn">
+            <i class="fas fa-bed text-indigo-400"></i>
+            <span>Stay</span>
+        </button>
+
+        <button onclick="renderTab('weather')" id="t-weather" class="tab-btn">
+            <i class="fas fa-cloud-sun text-amber-400"></i>
+            <span>Weather</span>
+        </button>
+
+        <button onclick="renderTab('budget')" id="t-budget" class="tab-btn">
+            <i class="fas fa-wallet text-emerald-400"></i>
+            <span>Budget</span>
+        </button>
+    </div>
+
+    <div id="tab-content" class="min-h-[350px] mt-2 animate-fade-in">
+        </div>
+</main>
+        </div>
+
+        <div class="bg-white p-6 rounded-[2rem] shadow-sm min-h-[400px]">
+            <div id="tab-content" class="space-y-4"></div>
+        </div>
+    </main> </div> <button id="chat-toggle" onclick="toggleChat()">💬</button>
+
+<div id="chat-container">
+    <div id="chat-header">VoyageGenie AI 🤖</div>
+    <div id="chat-box"></div>
+    <div id="chat-input-area">
+        <input type="text" id="user-input" placeholder="Ask VoyageGenie...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function toggleChat() {
+    const chat = document.getElementById('chat-container');
+    console.log("Chat button clicked!"); 
+    
+    if (!chat) {
+        console.error("Error: chat-container not found in HTML!");
+        return;
+    }
+
+    // This checks the current display state correctly even on the first click
+    const isVisible = window.getComputedStyle(chat).display === 'flex';
+    
+    if (isVisible) {
+        chat.style.display = 'none';
+    } else {
+        chat.style.display = 'flex';
+    }
+} 
+
+	 
+    // --- GLOBAL DATA ---
+    let appData = { src: "", dst: "", days: 1, mode: "aerial", hotel: 5000, mapInstance: null };
+
+    // --- TRANSITION ENGINE ---
+    function goToSetup() {
+        const login = document.getElementById('login-page');
+        const setup = document.getElementById('setup-page');
+        
+        if (login && setup) {
+            login.style.opacity = '0'; 
+            setTimeout(() => {
+                login.style.display = 'none';
+                setup.classList.remove('hidden'); 
+                setup.style.display = 'flex';     
+                setTimeout(() => setup.style.opacity = '1', 50);
+            }, 500);
+        }
+    }
+
+  // --- NEW GLOBAL STATE ---
+let isSignUpMode = false; 
+
+function toggleToRegister() {
+    isSignUpMode = !isSignUpMode;
+    const regFields = document.getElementById('register-fields');
+    const mainBtn = document.getElementById('auth-main-btn'); // Make sure your button has this ID
+    const title = document.getElementById('auth-title'); // Make sure your h2 has this ID
+    const footerLink = document.getElementById('auth-toggle-link');
+
+    if (isSignUpMode) {
+        regFields.classList.remove('hidden');
+        title.innerHTML = 'Register<span class="text-blue-600">Genie</span>';
+        mainBtn.innerText = 'Create Account';
+        footerLink.innerText = 'Sign In';
+    } else {
+        regFields.classList.add('hidden');
+        title.innerHTML = 'Voyage<span class="text-blue-600">Genie</span>';
+        mainBtn.innerText = 'Enter Portal';
+        footerLink.innerText = 'Create Account';
+    }
+}
+
+async function handleAuthSubmit() {
+    const email = document.getElementById('log-email').value;
+    const pass = document.getElementById('log-pass').value;
+    const endpoint = isSignUpMode ? 'http://localhost:3000/api/register' : 'http://localhost:3000/api/login';
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pass })
+        });
+
+       if (response.ok) {
+    console.log("Login successful, launching Setup Page...");
+    
+    // 1. Completely remove the login page from view
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('login-page').style.display = 'none';
+
+    // 2. Force the setup page to show
+    const setup = document.getElementById('setup-page');
+    if (setup) {
+        setup.classList.remove('hidden'); // Remove the "display: none"
+        setup.style.display = 'flex';     // Force flexbox centering
+        
+        // Trigger the V54 fade-in effect
+        setTimeout(() => {
+            setup.style.opacity = '1';
+        }, 10);
+    } else {
+        console.error("Error: Element with ID 'setup-page' not found!");
+    }
+}
+    } catch (error) {
+        console.error("Connection Error:", error);
+        alert("Server connection failed.");
+    }
+}    function handleGoogleLogin(event) {
+        const btn = event.currentTarget;
+        btn.innerHTML = `<i class="fas fa-circle-notch animate-spin text-blue-600"></i> <span>Connecting...</span>`;
+        btn.disabled = true;
+        setTimeout(goToSetup, 1200);
+    }
+
+  async function startVoyage() {
+    // 1. Capture Inputs
+    const src = document.getElementById('in-src').value;
+    const dst = document.getElementById('in-dst').value;
+    const daysInput = document.getElementById('in-days').value;
+    appData.days = parseInt(daysInput) || 1; 
+	renderTab('itinerary');
+    if(!src || !dst) return alert("Fill all details!");
+
+    appData.src = src;
+    appData.dst = dst;
+
+    // 2. Clear the UI Deck
+    const setupPage = document.getElementById('setup-page');
+    setupPage.classList.add('hidden');
+    setupPage.style.display = 'none';
+
+    // 3. Reveal Dashboard
+    const dashboard = document.getElementById('dashboard');
+    dashboard.classList.remove('hidden');
+    dashboard.style.display = 'block';
+    
+    document.getElementById('top-pill').innerText = `${src} ➔ ${dst}`;
+
+    // 4. Wait for DOM update, then init Map
+    setTimeout(async () => {
+        await initMap();
+        if (appData.mapInstance) {
+            appData.mapInstance.invalidateSize();
+        }
+    }, 300);
+
+    	
+}
+
+    // --- RENDER FUNCTIONS ---
+    async function initMap() {
+        if (appData.mapInstance) appData.mapInstance.remove();
+        appData.mapInstance = L.map('map', {zoomControl: false}).setView([20, 0], 2);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(appData.mapInstance);
+        try {
+            const [r1, r2] = await Promise.all([
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${appData.src}`).then(r => r.json()),
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${appData.dst}`).then(r => r.json())
+            ]);
+            if (r1[0] && r2[0]) {
+                const p1 = [r1[0].lat, r1[0].lon], p2 = [r2[0].lat, r2[0].lon];
+                L.circleMarker(p1, {radius: 6, color: '#3b82f6', fillOpacity: 1}).addTo(appData.mapInstance);
+                L.marker(p2).addTo(appData.mapInstance);
+                const poly = L.polyline([p1, p2], {color: '#3b82f6', weight: 3, dashArray: '10, 10'}).addTo(appData.mapInstance);
+                appData.mapInstance.fitBounds(poly.getBounds(), {padding: [50, 50]});
+            }
+        } catch (e) { console.log(e); }
+    }
+function renderTab(tab) {
+    // 1. Reset all button styles
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active-tab', 'bg-blue-600', 'text-white');
+        b.classList.add('bg-white', 'text-slate-600');
+    });
+
+    // 2. Highlight selected button (Safety Check included)
+    const activeBtn = document.getElementById('t-' + tab);
+    if (activeBtn) {
+        activeBtn.classList.add('active-tab', 'bg-blue-600', 'text-white');
+        activeBtn.classList.remove('bg-white', 'text-slate-600');
+    }
+
+    // 3. Find the container (Must match id="tab-content")
+    const cont = document.getElementById('tab-content');
+    if (!cont) return console.error("Missing 'tab-content' div in HTML!");
+
+    cont.innerHTML = "";
+
+
+      
+ if (tab === 'itinerary') {
+        const city = appData.dst || "Destination";
+        const totalDays = parseInt(appData.days) || 1;
+        
+        // 1. Activity Pools for Randomization
+        const morningPool = ["Breakfast at a local cafe", "Sunrise Heritage Walk", "Visit Main Square", "Early morning Park stroll"];
+        const afternoonPool = ["Explore City Museum", "Street Food Market Tour", "Local Artisan Workshop", "Historic Landmark Visit"];
+        const eveningPool = ["Rooftop Dinner", "Night Market Shopping", "Cultural Performance", "Evening River Cruise"];
+
+        // 2. Header
+        let res = `
+            <div class="flex justify-between items-center mb-6 px-2">
+                <h3 class="font-black text-xl uppercase text-slate-800">${city} Route</h3>
+                <span class="text-[10px] font-black bg-blue-100 text-blue-600 px-3 py-1 rounded-full">${totalDays} DAYS</span>
+            </div>
+            <div class="space-y-6">`;
+
+        // 3. THE LOOP: One clean loop for all days
+        for (let i = 0; i < totalDays; i++) {
+            // Randomly select one activity for each time of day
+            const m = morningPool[Math.floor(Math.random() * morningPool.length)];
+            const a = afternoonPool[Math.floor(Math.random() * afternoonPool.length)];
+            const e = eveningPool[Math.floor(Math.random() * eveningPool.length)];
+
+            res += `
+                <div class="relative pl-8 pb-4 border-l-2 border-slate-100 last:border-l-0">
+                    <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-blue-600 shadow-sm"></div>
+                    <p class="text-[10px] font-black text-blue-600 uppercase mb-2">Day ${i + 1}</p>
+                    
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-sun text-orange-400 mt-1 text-[10px]"></i>
+                            <p class="text-xs text-slate-600"><b>AM:</b> ${m}</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-university text-blue-400 mt-1 text-[10px]"></i>
+                            <p class="text-xs text-slate-600"><b>PM:</b> ${a}</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-moon text-indigo-400 mt-1 text-[10px]"></i>
+                            <p class="text-xs text-slate-600"><b>Night:</b> ${e}</p>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        res += `</div>`; // Close the space-y-6 div
+        cont.innerHTML = res;
+    }
+
+       
+	else if(tab === 'weather') {
+    const city = appData.dst || "London";
+    const apiKey = "dac98c86eb401b1b58715a9f3cdc8b5a"; // <--- Paste your key here
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`;
+
+    // Show a loading spinner first
+    cont.innerHTML = `
+        <div class="flex flex-col items-center justify-center p-20 text-blue-600">
+            <i class="fas fa-circle-notch animate-spin text-4xl mb-4"></i>
+            <p class="font-black text-[10px] uppercase tracking-widest">Fetching Real-Time Data...</p>
+        </div>`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('City not found');
+            return response.json();
+        })
+        .then(data => {
+            const list = data.list; // This contains 40 data points (every 3 hours)
+            let forecastHtml = "";
+
+            // We grab the weather for the same time each day (every 8th index)
+            for (let i = 0; i < 40; i += 8) {
+                const dayData = list[i];
+                const date = new Date(dayData.dt * 1000);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const temp = Math.round(dayData.main.temp);
+                const desc = dayData.weather[0].main;
+                const iconCode = dayData.weather[0].icon;
+
+                forecastHtml += `
+                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-2">
+                        <div class="flex items-center gap-4">
+                            <img src="https://openweathermap.org/img/wn/${iconCode}.png" class="w-10 h-10">
+                            <div>
+                                <b class="text-slate-700 text-sm">${i === 0 ? 'Today' : dayName}</b>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase">${desc}</p>
+                            </div>
+                        </div>
+                        <p class="font-black text-slate-900">${temp}°C</p>
+                    </div>`;
+            }
+
+            cont.innerHTML = `
+                <h3 class="font-black text-xl mb-4 uppercase text-slate-800">${city} Live</h3>
+                <div class="p-8 bg-gradient-to-br from-blue-600 to-blue-800 rounded-[2.5rem] text-white text-center shadow-xl mb-6">
+                    <h4 class="text-6xl font-black">${Math.round(list[0].main.temp)}°C</h4>
+                    <p class="text-xs font-bold uppercase tracking-widest mt-2 opacity-80">Real-Time Temperature</p>
+                </div>
+                <div class="space-y-1">${forecastHtml}</div>
+            `;
+        })
+        .catch(err => {
+            cont.innerHTML = `<div class="p-8 text-center bg-red-50 text-red-500 rounded-3xl font-bold">
+                <i class="fas fa-exclamation-triangle mb-2"></i><p>Could not load live weather.</p>
+            </div>`;
+        });
+}
+
+
+	
+	else if(tab === 'flights') {
+    const city = appData.dst || "Destination";
+    const apiKey = "db68e2ee0f73b93affeea40b5d50b1bc"; 
+    
+    cont.innerHTML = `<div class="p-10 text-center"><i class="fas fa-plane-departure animate-bounce text-blue-600 text-3xl"></i><p class="text-[10px] font-black uppercase mt-4 text-slate-400">Tracking Live Flights to ${city}...</p></div>`;
+
+    // Fetching arrivals for the destination city
+    fetch(`http://api.aviationstack.com/v1/flights?access_key=${apiKey}&arrival_iata=${city.substring(0,3).toUpperCase()}`)
+        .then(res => res.json())
+        .then(data => {
+            let html = `<h3 class="font-black text-xl mb-4 uppercase text-slate-800">Live Arrivals: ${city}</h3>`;
+            
+            if(!data.data || data.data.length === 0) {
+                // Fallback UI if API limit reached or no flights found
+                html += `<div class="p-6 bg-slate-50 rounded-2xl border-dashed border-2 border-slate-200 text-center">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">No Active Flights Found</p>
+                         </div>`;
+            } else {
+                data.data.slice(0, 4).forEach(flight => {
+                    const status = flight.flight_status === 'active' ? 'ON TIME' : 'SCHEDULED';
+                    html += `
+                        <div class="bg-white border border-slate-100 p-4 rounded-2xl mb-3 shadow-sm flex justify-between items-center">
+                            <div>
+                                <b class="text-blue-600 text-xs">${flight.airline.name}</b>
+                                <p class="text-slate-800 font-black">${flight.flight.iata}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[8px] font-black px-2 py-1 rounded bg-green-100 text-green-600 uppercase">${status}</span>
+                                <p class="text-[10px] font-bold text-slate-400 mt-1">Terminal ${flight.arrival.terminal || '1'}</p>
+                            </div>
+                        </div>`;
+                });
+            }
+            cont.innerHTML = html;
+        })
+        .catch(() => {
+            cont.innerHTML = `<p class="p-10 text-center text-slate-400 font-bold uppercase text-[10px]">Unable to connect to Flight Radar</p>`;
+        });
+}
+
+        
+
+else if (tab === 'stay') {
+    const city = appData.dst || "PAR"; 
+    const clientId = "QGkr6izmD2OklVbdgexux0E21M3FjQox";
+    const clientSecret = "5nuYahTln5KRPfGo";
+
+    cont.innerHTML = `<div class="p-10 text-center"><i class="fas fa-circle-notch animate-spin text-blue-600 text-3xl"></i><p class="text-[10px] font-black uppercase mt-4 text-slate-400">Searching Live Inventory...</p></div>`;
+
+    async function fetchLiveHotels() {
+        try {
+            // 1. Get Access Token
+            const authRes = await fetch("https://test.api.amadeus.com/v1/security/oauth2/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}`
+            });
+            const authData = await authRes.json();
+            const token = authData.access_token;
+
+            // 2. Fetch Hotels
+            const hotelRes = await fetch(`https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=${city.substring(0,3).toUpperCase()}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const hotelData = await hotelRes.json();
+            
+            if (!hotelData.data || hotelData.data.length === 0) throw new Error("No hotels found");
+
+            // 3. Render and Calculate Max Price
+            let html = `<h3 class="font-black text-xl mb-4 uppercase text-slate-800">Available Stays</h3>`;
+            let currentMax = 0; // Declare this BEFORE the loop
+
+            hotelData.data.slice(0, 3).forEach((hotel, i) => {
+                let dynamicPrice = Math.floor(Math.random() * (15000 - 5500 + 1)) + 5500;
+                
+                // Track the maximum price for the budget tab
+                if (dynamicPrice > currentMax) currentMax = dynamicPrice;
+
+                let formattedPrice = dynamicPrice.toLocaleString('en-IN');
+                const searchQuery = encodeURIComponent(`${hotel.name} ${appData.dst}`);
+                const agodaLink = `https://www.agoda.com/search?query=${searchQuery}`;
+                const randomSeed = Math.floor(Math.random() * 1000) + i;
+                // This uses specific keywords and the hotel index to ensure a unique, relevant image every time
+		const hotelImg = `https://loremflickr.com/600/400/hotel,resort,room/all?lock=${i + Math.floor(Math.random() * 100)}`;
+
+                html += `
+                    <div class="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-slate-100 mb-4 animate-fade-in">
+                        <div class="h-44 w-full bg-slate-200">
+                            <img src="${hotelImg}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1551882547-ff43c63efe81?auto=format&fit=crop&w=		600&q=80'">
+                        </div>
+                        <div class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div class="max-w-[65%]">
+                                    <h4 class="font-black text-slate-800 uppercase text-xs truncate">${hotel.name}</h4>
+                                    <div class="flex text-[8px] text-yellow-500 mt-1">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-black text-blue-600 text-lg leading-none">₹${formattedPrice}</p>
+                                    <p class="text-[7px] text-slate-400 uppercase font-bold tracking-widest">Per Night</p>
+                                </div>
+                            </div>
+                            <a href="${agodaLink}" target="_blank" class="block w-full mt-4 bg-slate-900 text-white py-3 rounded-xl font-black text-[9px] text-center uppercase tracking-widest active:scale-95 transition-all">
+                                Book This Stay
+                            </a>
+                        </div>
+                    </div>`;
+            }); // Close forEach
+
+            // 4. Update Global Data and UI
+            appData.maxStayPrice = currentMax;
+            cont.innerHTML = html;
+
+        } catch (err) {
+            cont.innerHTML = `<div class="p-8 text-center text-slate-400 font-bold"><i class="fas fa-exclamation-circle mb-2"></i><p>Live data unavailable. Use 3-letter city code (e.g. DXB).</p></div>`;
+        }
+    }
+    fetchLiveHotels();
+}
+        
+
+else if (tab === 'essentials') {
+    const temp = appData.temp || 25; // Fallback to 25°C if weather fails
+    let clothingAdvice = "";
+
+    // 1. Dynamic Clothing Logic
+    if (temp < 10) {
+        clothingAdvice = "Heavy woolens, thermal innerwear, gloves, and a puffer jacket.";
+    } else if (temp >= 10 && temp < 20) {
+        clothingAdvice = "Light layers: Hoodies, a light jacket, and full-length trousers.";
+    } else {
+        clothingAdvice = "Breathable cottons: T-shirts, linen shirts, and comfortable shorts/skirts.";
+    }
+
+    cont.innerHTML = `
+        <div class="animate-fade-in p-2">
+            <h3 class="font-black text-xl mb-4 uppercase text-slate-800">Trip Essentials</h3>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-2xl mb-4">
+                <p class="text-[10px] font-black uppercase text-blue-600 mb-1">Wear for ${temp}°C</p>
+                <p class="text-xs text-slate-700 font-medium">${clothingAdvice}</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-red-100 p-2 rounded-lg text-red-600"><i class="fas fa-medkit"></i></div>
+                        <h4 class="font-black text-xs uppercase text-slate-800">Medical Kit</h4>
+                    </div>
+                    <ul class="text-[11px] text-slate-600 space-y-2 font-medium">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Pain: Paracetamol / Aspirin</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Headache: Disprin</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Personal: ${appData.meds || 'Daily Prescriptions'}</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> First Aid: Band-aids & Antiseptic</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-purple-100 p-2 rounded-lg text-purple-600"><i class="fas fa-file-invoice"></i></div>
+                        <h4 class="font-black text-xs uppercase text-slate-800">Must-Have Documents</h4>
+                    </div>
+                    <ul class="text-[11px] text-slate-600 space-y-2 font-medium">
+                        <li><i class="fas fa-id-card text-slate-400 mr-2"></i> Medical Insurance (Global Cover)</li>
+                        <li><i class="fas fa-credit-card text-slate-400 mr-2"></i> Backup Credit Card</li>
+                        <li><i class="fas fa-passport text-slate-400 mr-2"></i> Passport & Visa (Hard Copies)</li>
+                        <li><i class="fas fa-hotel text-slate-400 mr-2"></i> Hotel Reservation Printout</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+
+
+	else if (tab === 'budget') {
+    const daysFromInput = document.getElementById('in-days') ? parseInt(document.getElementById('in-days').value) : 1;
+    const totalDays = appData.days || daysFromInput || 1;
+    
+    // 1. Get Stay cost from our maxStayPrice logic (fallback to 5500)
+    const stayPerDay = appData.maxStayPrice || 5500; 
+    const foodPerDay = 1500;
+    const travelPerDay = 1000;
+    const shoppingPerDay = 2000; // New category
+    
+    // 2. Calculations
+    const totalStay = stayPerDay * totalDays;
+    const totalFood = foodPerDay * totalDays;
+    const totalTravel = travelPerDay * totalDays;
+    const totalShopping = shoppingPerDay * totalDays;
+    const grandTotal = totalStay + totalFood + totalTravel + totalShopping;
+
+    cont.innerHTML = `
+        <div class="animate-fade-in">
+            <h3 class="font-black text-xl mb-4 uppercase text-slate-800 italic">Expense Estimate</h3>
+            
+            <div class="grid grid-cols-1 gap-3 mb-6">
+                <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center"><i class="fas fa-hotel text-blue-500 text-[10px]"></i></div>
+                        <span class="text-[10px] font-black uppercase text-slate-500">Hotel Stay</span>
+                    </div>
+                    <span class="font-black text-slate-800 text-sm">₹${totalStay.toLocaleString('en-IN')}</span>
+                </div>
+
+                <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center"><i class="fas fa-hamburger text-orange-500 text-[10px]"></i></div>
+                        <span class="text-[10px] font-black uppercase text-slate-500">Avg Food</span>
+                    </div>
+                    <span class="font-black text-slate-800 text-sm">₹${totalFood.toLocaleString('en-IN')}</span>
+                </div>
+
+                <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center"><i class="fas fa-route text-green-500 text-[10px]"></i></div>
+                        <span class="text-[10px] font-black uppercase text-slate-500">Avg Travel</span>
+                    </div>
+                    <span class="font-black text-slate-800 text-sm">₹${totalTravel.toLocaleString('en-IN')}</span>
+                </div>
+
+                <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center"><i class="fas fa-shopping-bag text-purple-500 text-[10px]"></i></div>
+                        <span class="text-[10px] font-black uppercase text-slate-500">Shopping</span>
+                    </div>
+                    <span class="font-black text-slate-800 text-sm">₹${totalShopping.toLocaleString('en-IN')}</span>
+                </div>
+            </div>
+
+            <div class="p-8 bg-slate-900 rounded-[2.5rem] text-white text-center shadow-xl relative overflow-hidden">
+                <p class="text-[10px] font-bold uppercase opacity-50 mb-1 tracking-[0.2em]">Estimated Total</p>
+                <h2 class="text-4xl font-black text-blue-400">₹${grandTotal.toLocaleString('en-IN')}</h2>
+                <div class="mt-4 pt-4 border-t border-white/10">
+                    <p class="text-[8px] font-bold uppercase tracking-widest opacity-40">Based on ${totalDays} Days in ${appData.dst || 'Destination'}</p>
+                </div>
+            </div>
+        </div>`;
+	} 
+} 
+
+
+// 1. GLOBAL UI CONTROLS (Standard Script)
+function toggleChat() {
+    const chat = document.getElementById('chat-container');
+    if (!chat) return;
+    if (chat.style.display === 'none' || chat.style.display === '') {
+        chat.style.display = 'flex';
+    } else {
+        chat.style.display = 'none';
+    }
+}
+</script>
+
+<script type="importmap">
+  {
+    "imports": {
+      "@google/generative-ai": "https://esm.run/@google/generative-ai"
+    }
+  }
+</script>
+
+<script type="module">
+    import { GoogleGenerativeAI } from "@google/generative-ai";
+    
+    // Initialize Gemini
+    const genAI = new GoogleGenerativeAI("AIzaSyA2sVmIMqbYj_eojdeYbPoRzPc1NW36YRI");
+    const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.0-flash",
+        systemInstruction: "You are VoyageGenie AI. Help with travel plans. Keep responses under 3 sentences." 
+    });
+
+    // We MUST attach this to 'window' so the HTML button onclick="sendMessage()" works
+    window.sendMessage = async function() {
+        const input = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        
+        if (!input || !chatBox) return;
+        const q = input.value.trim();
+        if (!q) return;
+
+        // User Message UI
+        chatBox.innerHTML += `
+            <div class="flex justify-end mb-3">
+                <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] shadow-sm">
+                    <p class="text-xs font-medium">${q}</p>
+                </div>
+            </div>`;
+        
+        input.value = ""; 
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            const dest = window.appData?.dst || "your destination";
+            const result = await model.generateContent(`Context: User is going to ${dest}. Question: ${q}`);
+            const response = await result.response;
+            
+            chatBox.innerHTML += `
+                <div class="flex justify-start mb-3">
+                    <div class="bg-white text-slate-800 p-3 rounded-2xl rounded-tl-none max-w-[85%] border border-slate-100 shadow-sm">
+                        <p class="text-[8px] font-black uppercase text-blue-600 mb-1">VoyageGenie AI</p>
+                        <p class="text-xs leading-relaxed text-slate-700">${response.text()}</p>
+                    </div>
+                </div>`;
+        } catch (error) {
+            chatBox.innerHTML += `<div class="text-center py-2"><span class="text-[10px] font-bold text-red-400 uppercase">Genie is offline</span></div>`;
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    // Handle Enter Key
+    document.getElementById('user-input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') window.sendMessage();
+    });
+</script>
+
+</body>
+</html>
